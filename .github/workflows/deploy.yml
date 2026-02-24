@@ -19,16 +19,21 @@ jobs:
     steps:
       - uses: actions/checkout@v4
 
-      - name: Build short/index.json
+      - name: Build index.json for all folders
         run: |
-          echo '[' > short/index.json
-          first=true
-          for f in short/*.json; do
-            [ "$f" = "short/index.json" ] && continue
-            [ "$first" = true ] && first=false || echo ',' >> short/index.json
-            cat "$f" >> short/index.json
+          for dir in entries short; do
+            [ -d "$dir" ] || continue
+            echo "Building $dir/index.json"
+            echo '[' > "$dir/index.json.tmp"
+            first=true
+            for f in "$dir"/*.json; do
+              [ "$(basename "$f")" = "index.json" ] && continue
+              [ "$first" = true ] && first=false || echo ',' >> "$dir/index.json.tmp"
+              cat "$f" >> "$dir/index.json.tmp"
+            done
+            echo ']' >> "$dir/index.json.tmp"
+            mv "$dir/index.json.tmp" "$dir/index.json"
           done
-          echo ']' >> short/index.json
 
       - uses: actions/upload-pages-artifact@v3
         with:
